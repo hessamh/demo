@@ -1,12 +1,23 @@
 package dto;
 
+import jakarta.validation.constraints.*;
+
 import java.math.BigDecimal;
 
 public class CreateOrderRequest {
 
+    @NotNull(message = "{order.userId.not-null}")
+    @Positive(message = "{order.userId.positive}")
     private Long userId;
+    @NotBlank(message = "{order.product.not-blank}")
+    @Size(max = 100, message = "{order.product.size}")
     private String product;
+    @NotNull(message = "{order.quantity.not-null}")
+    @Min(value = 1, message = "{order.quantity.min}")
     private Integer quantity;
+    @NotNull(message = "{order.total.not-null}")
+    @DecimalMin(value = "0.0", inclusive = true, message = "{order.total.min}")
+    @Digits(integer = 12, fraction = 2, message = "{order.total.digits}")
     private BigDecimal total;
 
     public CreateOrderRequest() {
