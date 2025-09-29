@@ -1,8 +1,12 @@
 package controller;
 
+import dto.CreateUserRequest;
+import dto.UserResponse;
 import dto.UserWithOrdersDto;
 import entity.User;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import repository.UserRepository;
 
@@ -10,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@Validated
 public class UserController {
 
     private final UserRepository userRepository;
@@ -24,8 +29,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user){
-        return ResponseEntity.ok(userRepository.save(user));
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request){
+        var user = new User();
+        user.setName(request.getName());
+        User savedUser = userRepository.save(user);
+        return ResponseEntity.ok(new UserResponse(savedUser.getId(), savedUser.getName()));
     }
 
     @GetMapping("/with-orders")
