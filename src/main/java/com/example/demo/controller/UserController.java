@@ -1,14 +1,19 @@
-package controller;
+package com.example.demo.controller;
 
-import dto.CreateUserRequest;
-import dto.UserResponse;
-import dto.UserWithOrdersDto;
-import entity.User;
+import com.example.demo.dto.UserResponse;
+import com.example.demo.dto.CreateUserRequest;
+import com.example.demo.dto.PageResponse;
+import com.example.demo.dto.UserWithOrdersDto;
+import com.example.demo.entity.User;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import repository.UserRepository;
+import com.example.demo.repository.UserRepository;
 
 import java.util.List;
 
@@ -48,5 +53,12 @@ public class UserController {
                                 )).toList()
                 )
         ).toList();
+    }
+
+    @GetMapping("/pageList")
+    public PageResponse<User> list(@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+                                   @RequestParam(required = false, name = "sort") String sort) {
+        Page<User> page = userRepository.findAll(pageable);
+        return PageResponse.of(page, sort);
     }
 }
