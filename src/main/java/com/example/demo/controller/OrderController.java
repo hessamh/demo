@@ -1,18 +1,21 @@
-package controller;
+package com.example.demo.controller;
 
-import dto.CreateOrderRequest;
-import dto.OrderResponse;
-import entity.Order;
+import com.example.demo.dto.CreateOrderRequest;
+import com.example.demo.dto.OrderResponse;
+import com.example.demo.dto.PageResponse;
+import com.example.demo.entity.Order;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import repository.OrderRepository;
-import repository.UserRepository;
-
-import java.util.List;
+import com.example.demo.repository.OrderRepository;
+import com.example.demo.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -46,13 +49,22 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderResponse> orderList(@RequestParam(required = false) @Positive(message = "{common.id.positive}") Long userId){
-        var orders = (userId != null) ? orderRepository.findByUserId(userId) : orderRepository.findAll();
-        return orders.stream()
-                .map(order -> new OrderResponse(
-                        order.getId(),
-                        (order.getUser() != null ? order.getUser().getId() : null),
-                        order.getProduct(), order.getQuantity(), order.getTotal(), order.getCreatedAt()))
-                .toList();
+    public PageResponse<OrderResponse> orderPage(@RequestParam(required = false) @Positive(message = "{common.id.positive}") Long userId,
+                                         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable,
+                                         @RequestParam(required = false, name = "sort") String sort
+    ){
+        Page<Order> page = (userId != null)
+                ? orderRepository.findByUserId(userId, pageable)
+                : orderRepository.findAll(pageable);
+
+        Page<OrderResponse> dtoPage = page.map(order -> new OrderResponse(
+                order.getId(),
+                (order.getUser() != null ? order.getUser().getId() : null),
+                order.getProduct(),
+                order.getQuantity(),
+                order.getTotal(),
+                order.getCreatedAt()
+        ));
+        return PageResponse.of(dtoPage, sort);
     }
 }
